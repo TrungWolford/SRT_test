@@ -8,6 +8,7 @@
 - [🛠️ Công nghệ Sử dụng (Tech Stack)](#️-công-nghệ-sử-dụng-tech-stack)
 - [🌟 Các Tính năng Nổi bật](#-các-tính-năng-nổi-bật)
   - [📝 Tính năng Nghiệp vụ (Core Todo)](#-tính-năng-nghiệp-vụ-core-todo)
+  - [🔐 Bảo mật JWT (JWT Security)](#-bảo-mật-jwt-jwt-security)
   - [📱 Responsive UI](#-responsive-ui)
   - [📑 Phân trang & Sắp xếp dữ liệu](#-phân-trang--sắp-xếp-dữ-liệu)
   - [🐳 Triển khai Docker Compose](#-triển-khai-docker-compose)
@@ -23,7 +24,7 @@
 
 ## 🛠️ Công nghệ Sử dụng (Tech Stack)
 
-Hệ thống được phát triển theo mô hình **Client-Server** sử dụng các công nghệ hiện đại được định nghĩa trong [client/package.json](file:///d:/Project/SRT_test/client/package.json) và [server/pom.xml](file:///d:/Project/SRT_test/server/pom.xml):
+Hệ thống được phát triển theo mô hình **Client-Server** sử dụng các công nghệ hiện đại được định nghĩa trong `client/package.json` và `server/pom.xml`:
 
 ### 1. Frontend (`/client`)
 Ứng dụng trang đơn (SPA) được phát triển bằng **React 19**, **Vite** và **TypeScript**:
@@ -68,28 +69,35 @@ Dự án áp dụng các tiêu chuẩn và tính năng nâng cao sau:
   - Cho phép người dùng tìm kiếm tức thời các công việc dựa trên **Tiêu đề (Title)**.
   - Hệ thống bộ lọc (Filter tabs) đa dạng hỗ trợ phân loại nhanh công việc theo các trạng thái: Đang làm (Active), Quan trọng (Important), Đã hoàn thành (Completed), và Đã xóa/Thùng rác (Deleted).
 
+### 🔐 Bảo mật JWT (JWT Security)
+- **Cơ chế xác thực phi trạng thái (Stateless Authentication)**: 
+  - Toàn bộ các API yêu cầu dữ liệu Todo đều được cấu hình kiểm soát truy cập thông qua bộ lọc `SecurityConfig.java`.
+  - Sử dụng Token JWT được ký mã hóa và xác thực tự động ở mỗi request thông qua `JwtUtils.java` và `JwtAuthenticationFilter.java`.
+- **Hệ thống Đăng ký / Đăng nhập an toàn**: Mật khẩu người dùng được mã hóa bằng thuật toán `BCryptPasswordEncoder` trước khi lưu vào database.
+- **Phân quyền truy cập tài nguyên**: Đảm bảo người dùng đã đăng nhập chỉ có thể truy vấn, sửa đổi hoặc xóa các công việc do chính tài khoản của họ tạo ra, ngăn chặn việc rò rỉ hoặc can thiệp chéo dữ liệu giữa các tài khoản.
+
 ### 📱 Responsive UI
 - Giao diện người dùng được thiết kế responsive hoàn chỉnh, tối ưu trải nghiệm trên mọi kích thước màn hình từ điện thoại di động, máy tính bảng đến máy tính để bàn lớn.
 - Sử dụng các layout linh hoạt (Grid, Flexbox) và breakpoints của Tailwind CSS để tự động thích ứng.
 - Sidebar điều hướng có thể thu gọn linh hoạt trên màn hình desktop và ẩn/hiện dạng Drawer trên điện thoại di động để tiết kiệm diện tích.
 
 ### 📑 Phân trang & Sắp xếp dữ liệu
-- **Phân trang (Pagination)**: Hỗ trợ phân trang phía Backend sử dụng API `Pageable` của Spring Data JPA. Frontend nhận dữ liệu và hiển thị thanh chuyển trang trực quan (Trang trước/sau, tổng số trang) tại [Dashboard.tsx](file:///d:/Project/SRT_test/client/src/pages/Todo/Dashboard.tsx#L637-L657), giúp tăng tốc độ tải và giảm băng thông truyền tải dữ liệu.
-- **Sắp xếp (Sorting)**: Backend tự động sắp xếp danh sách công việc theo thời gian tạo mới nhất (`createdDate` giảm dần - DESC) trước khi trả về qua API nhờ cấu hình `Sort.by(Sort.Direction.DESC, "createdDate")` trong [TaskServiceImpl.java](file:///d:/Project/SRT_test/server/src/main/java/SRT/test/service/Impl/TaskServiceImpl.java#L134).
+- **Phân trang (Pagination)**: Hỗ trợ phân trang phía Backend sử dụng API `Pageable` của Spring Data JPA. Frontend nhận dữ liệu và hiển thị thanh chuyển trang trực quan (Trang trước/sau, tổng số trang) tại `Dashboard.tsx`, giúp tăng tốc độ tải và giảm băng thông truyền tải dữ liệu.
+- **Sắp xếp (Sorting)**: Backend tự động sắp xếp danh sách công việc theo thời gian tạo mới nhất (`createdDate` giảm dần - DESC) trước khi trả về qua API nhờ cấu hình `Sort.by(Sort.Direction.DESC, "createdDate")` trong `TaskServiceImpl.java`.
 
 ### 🐳 Triển khai Docker Compose
-- Hệ thống hỗ trợ khởi dựng toàn diện chỉ bằng một câu lệnh: `docker compose up -d --build` thông qua tệp cấu hình [docker-compose.yml](file:///d:/Project/SRT_test/docker-compose.yml).
-- Tự động hóa quá trình xây dựng image cho dịch vụ Spring Boot qua [Dockerfile](file:///d:/Project/SRT_test/server/Dockerfile).
+- Hệ thống hỗ trợ khởi dựng toàn diện chỉ bằng một câu lệnh: `docker compose up -d --build` thông qua tệp cấu hình `docker-compose.yml`.
+- Tự động hóa quá trình xây dựng image cho dịch vụ Spring Boot qua `Dockerfile`.
 - Cấu hình mạng độc lập (`srt-network`) và volume bền vững (`postgres_data`) đảm bảo dữ liệu PostgreSQL không bị mất khi container dừng/khởi động lại.
 - Dữ liệu mẫu (sample data) được tự động nạp vào DB khi khởi tạo lần đầu thông qua file khởi tạo SQL `init-sample-data.sql`.
 
 ### 🧪 Unit Test
-- **Backend**: Đã triển khai bộ kiểm thử đơn vị (Unit Tests) hoàn chỉnh cho tầng dịch vụ nghiệp vụ chính [AuthServiceImplTest.java](file:///d:/Project/SRT_test/server/src/test/java/SRT/test/service/Impl/AuthServiceImplTest.java) và [TaskServiceImplTest.java](file:///d:/Project/SRT_test/server/src/test/java/SRT/test/service/Impl/TaskServiceImplTest.java) sử dụng framework **JUnit 5** kết hợp với thư viện giả lập **Mockito**.
-- **Frontend**: Môi trường kiểm thử được thiết lập đầy đủ với **Jest**, **React Testing Library** và **ts-jest**, cấu hình sẵn mock cho các Web API (như IntersectionObserver) trong [setupTests.ts](file:///d:/Project/SRT_test/client/src/setupTests.ts) giúp sẵn sàng phát triển thêm các kịch bản test giao diện.
+- **Backend**: Đã triển khai bộ kiểm thử đơn vị (Unit Tests) hoàn chỉnh cho tầng dịch vụ nghiệp vụ chính `AuthServiceImplTest.java` và `TaskServiceImplTest.java` sử dụng framework **JUnit 5** kết hợp với thư viện giả lập **Mockito**.
+- **Frontend**: Môi trường kiểm thử được thiết lập đầy đủ với **Jest**, **React Testing Library** và **ts-jest**, cấu hình sẵn mock cho các Web API (như IntersectionObserver) trong `setupTests.ts` giúp sẵn sàng phát triển thêm các kịch bản test giao diện.
 
 ### ⚡ Tối ưu Hiệu năng (Performance)
-- **Search Debouncing**: Tích hợp cơ chế trì hoãn (Debounce 500ms) ở ô tìm kiếm tại [Dashboard.tsx](file:///d:/Project/SRT_test/client/src/pages/Todo/Dashboard.tsx#L75-L80). Khi người dùng gõ từ khóa, hệ thống đợi ngắt phím đủ 500ms mới kích hoạt API gọi lên backend, tránh spam các request liên tục không cần thiết.
-- **Database Lazy Loading**: Thực thể [Task.java](file:///d:/Project/SRT_test/server/src/main/java/SRT/test/entity/Task.java#L21) được cấu hình liên kết với `User` dạng `@ManyToOne(fetch = FetchType.LAZY)`. Điều này giúp tránh hiện tượng N+1 query và chỉ tải thông tin người dùng khi thực sự cần thiết, cải thiện đáng kể tốc độ truy cập cơ sở dữ liệu.
+- **Search Debouncing**: Tích hợp cơ chế trì hoãn (Debounce 500ms) ở ô tìm kiếm tại `Dashboard.tsx`. Khi người dùng gõ từ khóa, hệ thống đợi ngắt phím đủ 500ms mới kích hoạt API gọi lên backend, tránh spam các request liên tục không cần thiết.
+- **Database Lazy Loading**: Thực thể `Task.java` được cấu hình liên kết với `User` dạng `@ManyToOne(fetch = FetchType.LAZY)`. Điều này giúp tránh hiện tượng N+1 query và chỉ tải thông tin người dùng khi thực sự cần thiết, cải thiện đáng kể tốc độ truy cập cơ sở dữ liệu.
 - **Vite Build**: Quy trình build tối ưu hóa mã nguồn tĩnh phía Frontend, giảm thiểu dung lượng file đóng gói để người dùng tải trang nhanh nhất.
 
 ---
@@ -144,7 +152,15 @@ Cách này sẽ tự động khởi dựng cơ sở dữ liệu PostgreSQL và m
 3. Docker sẽ tiến hành tải ảnh PostgreSQL, xây dựng mã nguồn Java bên trong container và chạy dịch vụ ngầm. 
    * **Database**: Chạy trên cổng `5434`.
    * **Backend REST API**: Chạy trên cổng `8080`.
-4. Sau đó, bạn chỉ cần khởi chạy FE ở cục bộ bằng cách vào thư mục `client/` và chạy `npm run dev`.
+4. **Khởi chạy Frontend**:
+   * Đảm bảo máy tính đã cài đặt **Node.js** (v18 trở lên).
+   * Mở terminal mới, truy cập vào thư mục `client/`, cài đặt các thư viện và khởi chạy dự án:
+     ```bash
+     npm install
+     npm run dev
+     ```
+     *(Hoặc dùng `pnpm install` và `pnpm dev` nếu bạn sử dụng pnpm).*
+     Ứng dụng FE sẽ được khởi chạy tại địa chỉ `http://localhost:5174/`.
 
 ---
 
@@ -153,7 +169,7 @@ Cách này sẽ tự động khởi dựng cơ sở dữ liệu PostgreSQL và m
 #### Yêu cầu môi trường:
 * **Java 21** hoặc cao hơn.
 * **Node.js** (v18 trở lên) & **npm** hoặc **pnpm**.
-* **PostgreSQL** đang chạy trên cổng `5434` (hoặc cấu hình lại trong file [application.properties](file:///d:/Project/SRT_test/server/src/main/resources/application.properties)).
+* **PostgreSQL** đang chạy trên cổng `5434` (hoặc cấu hình lại trong file `application.properties`).
 
 #### Các bước khởi chạy:
 
