@@ -7,6 +7,7 @@
 ## 📌 Mục lục
 - [🛠️ Công nghệ Sử dụng (Tech Stack)](#️-công-nghệ-sử-dụng-tech-stack)
 - [🌟 Các Tính năng Nổi bật](#-các-tính-năng-nổi-bật)
+  - [📝 Tính năng Nghiệp vụ (Core Todo)](#-tính-năng-nghiệp-vụ-core-todo)
   - [📱 Responsive UI](#-responsive-ui)
   - [📑 Phân trang & Sắp xếp dữ liệu](#-phân-trang--sắp-xếp-dữ-liệu)
   - [🐳 Triển khai Docker Compose](#-triển-khai-docker-compose)
@@ -14,8 +15,8 @@
   - [⚡ Tối ưu Hiệu năng (Performance)](#-tối-ưu-hiệu-năng-performance)
 - [📂 Cấu trúc Thư mục Chính](#-cấu-trúc-thư-mục-chính)
 - [🚀 Hướng dẫn Chạy Dự án](#-hướng-dẫn-chạy-dự-án)
-  - [Cách 1: Chạy trực tiếp trên máy cục bộ (Local Run)](#cách-1-chạy-trực-tiếp-trên-máy-cục-bộ-local-run)
-  - [Cách 2: Chạy thông qua Docker Compose (Khuyên dùng)](#cách-2-chạy-thông-qua-docker-compose-khuyên-dùng)
+  - [Cách 1: Chạy thông qua Docker Compose (Khuyên dùng)](#cách-1-chạy-thông-qua-docker-compose-khuyên-dùng)
+  - [Cách 2: Chạy trực tiếp trên máy cục bộ (Local Run)](#cách-2-chạy-trực-tiếp-trên-máy-cục-bộ-local-run)
 - [🧪 Kiểm thử (Testing)](#-kiểm-thử-testing)
 
 ---
@@ -55,6 +56,17 @@ Hệ thống được phát triển theo mô hình **Client-Server** sử dụng
 ## 🌟 Các Tính năng Nổi bật
 
 Dự án áp dụng các tiêu chuẩn và tính năng nâng cao sau:
+
+### 📝 Tính năng Nghiệp vụ (Core Todo)
+- **Hiển thị danh sách công việc**: Danh sách nhiệm vụ được trình bày trực quan và ngăn nắp, thể hiện đầy đủ các thông tin cần thiết: Tiêu đề, mô tả, ngày đến hạn (Due Date) và mức độ ưu tiên.
+- **Quản lý nhiệm vụ toàn diện (CRUD Task)**: 
+  - **Create**: Thêm mới nhiệm vụ nhanh chóng với các tùy chọn ngày đến hạn và gắn nhãn quan trọng.
+  - **Read/Update**: Xem chi tiết và cập nhật nội dung công việc mọi lúc.
+  - **Delete**: Cơ chế xóa mềm đưa nhiệm vụ vào thùng rác (giúp tránh việc vô tình xóa mất dữ liệu), cho phép khôi phục lại (Restore) hoặc xóa vĩnh viễn (Hard Delete).
+- **Đánh dấu trạng thái Hoàn thành**: Dễ dàng đánh dấu nhiệm vụ đã hoàn thành hoặc khôi phục về trạng thái chưa hoàn thành chỉ với một click thông qua Checkbox tiện lợi.
+- **Tìm kiếm & Bộ lọc linh hoạt**: 
+  - Cho phép người dùng tìm kiếm tức thời các công việc dựa trên **Tiêu đề (Title)**.
+  - Hệ thống bộ lọc (Filter tabs) đa dạng hỗ trợ phân loại nhanh công việc theo các trạng thái: Đang làm (Active), Quan trọng (Important), Đã hoàn thành (Completed), và Đã xóa/Thùng rác (Deleted).
 
 ### 📱 Responsive UI
 - Giao diện người dùng được thiết kế responsive hoàn chỉnh, tối ưu trải nghiệm trên mọi kích thước màn hình từ điện thoại di động, máy tính bảng đến máy tính để bàn lớn.
@@ -115,7 +127,28 @@ SRT_test/
 
 Bạn có thể chạy dự án theo một trong hai cách dưới đây:
 
-### Cách 1: Chạy trực tiếp trên máy cục bộ (Local Run)
+### Cách 1: Chạy thông qua Docker Compose (Khuyên dùng)
+
+Cách này sẽ tự động khởi dựng cơ sở dữ liệu PostgreSQL và máy chủ Backend mà không cần cài đặt môi trường Java/Postgres trên máy cá nhân của bạn.
+
+#### Yêu cầu:
+* Máy tính đã cài đặt **Docker** và **Docker Desktop**.
+
+#### Các bước khởi chạy:
+
+1. Mở terminal tại thư mục gốc của dự án (nơi chứa file `docker-compose.yml`).
+2. Khởi chạy Docker Compose bằng lệnh:
+   ```bash
+   docker compose up -d --build
+   ```
+3. Docker sẽ tiến hành tải ảnh PostgreSQL, xây dựng mã nguồn Java bên trong container và chạy dịch vụ ngầm. 
+   * **Database**: Chạy trên cổng `5434`.
+   * **Backend REST API**: Chạy trên cổng `8080`.
+4. Sau đó, bạn chỉ cần khởi chạy FE ở cục bộ bằng cách vào thư mục `client/` và chạy `npm run dev`.
+
+---
+
+### Cách 2: Chạy trực tiếp trên máy cục bộ (Local Run)
 
 #### Yêu cầu môi trường:
 * **Java 21** hoặc cao hơn.
@@ -141,27 +174,6 @@ Bạn có thể chạy dự án theo một trong hai cách dưới đây:
    npm run dev
    ```
    Ứng dụng FE sẽ được khởi chạy tại địa chỉ `http://localhost:5174/`.
-
----
-
-### Cách 2: Chạy thông qua Docker Compose (Khuyên dùng)
-
-Cách này sẽ tự động khởi dựng cơ sở dữ liệu PostgreSQL và máy chủ Backend mà không cần cài đặt môi trường Java/Postgres trên máy cá nhân của bạn.
-
-#### Yêu cầu:
-* Máy tính đã cài đặt **Docker** và **Docker Desktop**.
-
-#### Các bước khởi chạy:
-
-1. Mở terminal tại thư mục gốc của dự án (nơi chứa file `docker-compose.yml`).
-2. Khởi chạy Docker Compose bằng lệnh:
-   ```bash
-   docker compose up -d --build
-   ```
-3. Docker sẽ tiến hành tải ảnh PostgreSQL, xây dựng mã nguồn Java bên trong container và chạy dịch vụ ngầm. 
-   * **Database**: Chạy trên cổng `5434`.
-   * **Backend REST API**: Chạy trên cổng `8080`.
-4. Sau đó, bạn chỉ cần khởi chạy FE ở cục bộ bằng cách vào thư mục `client/` và chạy `npm run dev`.
 
 ---
 
