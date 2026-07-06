@@ -1,0 +1,76 @@
+import axios from "axios";
+import type { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from "axios";
+import { store } from "../store";
+import { logout } from "../store/slices/authSlice";
+import { CONFIG, STORAGE_KEYS } from "../config/constants";
+
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+const axiosInstance = axios.create({
+  baseURL: CONFIG.API_GATEWAY,
+  timeout: 120000, // 2 phút = 120.000 ms
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Request interceptor
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || 
+                  localStorage.getItem('access_token') || 
+                  localStorage.getItem('accessToken');
+                  
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log(`[Axios Request] ${config.method?.toUpperCase()} ${config.url} - Auth Attached`);
+    } else {
+      console.warn(`[Axios Request] ${config.method?.toUpperCase()} ${config.url} - MISSING TOKEN`);
+    }
+    
+    return config;
+  },
+  (error: AxiosError) => Promise.reject(error)
+);
+
+// Response interceptor
+axiosInstance.interceptors.response.use(
+  (response: AxiosResponse) => {
+    if (response.data && typeof response.data === 'object') {
+      if ('success' in response.data) {
+        response.data.status = response.data.success ? 'success' : 'error';
+      }
+    }
+    return response;
+  },
+  async (error: AxiosError) => {
+    const originalRequest = error.config as CustomAxiosRequestConfig;
+
+    // Kiểm tra nếu là request login/register/refresh/logout thì không xử lý 401 đặc biệt
+    const isLoginRequest = originalRequest?.url?.includes('/login') || 
+                           originalRequest?.url?.includes('/auth');
+
+    // If the error is 401 and we haven't tried to refresh the token yet
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isLoginRequest) {
+      originalRequest._retry = true;
+
+      try {
+        // Dispatch customer logout action to clear auth state
+        store.dispatch(logout());
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+        window.location.href = '/login';
+        return Promise.reject(error);
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default axiosInstance;
