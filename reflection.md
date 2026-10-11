@@ -15,9 +15,15 @@ Before writing any prompt, I followed a structured engineering process:
 
 ## What did the AI get wrong, and how did you fix it?
 
-1. **Timezone mismatch in tests** — AI generated `TaskServiceImplTest` with hardcoded dates that broke under different JVM timezones. I fixed it by adding `TimeZone.setDefault(UTC)` in `@BeforeAll` and setting `hibernate.jdbc.time_zone=UTC` in `application.properties`.
+AI automatically added out-of-scope dependencies beyond project requirements:
 
-2. **Axios response shape mismatch** — The backend returns `{ success: boolean }` but the frontend types expected `{ status: 'success'|'error' }`. AI generated both layers in isolation and never aligned them. I manually wrote the interceptor that transforms the field, since it required seeing both sides at once.
+- **Consequences**:
+  - Introduced deprecated or outdated packages with known security vulnerabilities.
+  - Unnecessarily bloated the application bundle size.
+  - Risked malicious packages from hallucinated package names (typosquatting).
+- **How I fixed it**:
+  - **Required human authorization**: Mandated that AI must justify and obtain approval before running installation commands (`npm install`).
+  - **Prompt constraints**: Constrained prompts with strict boundaries: *"Only use libraries already in `package.json`, never install new dependencies."*
 
 ## What did you deliberately NOT delegate to AI, and why?
 
