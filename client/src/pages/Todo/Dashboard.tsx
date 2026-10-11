@@ -185,7 +185,7 @@ const Dashboard: React.FC = () => {
       } else {
         toast.error(response.message || 'Cập nhật trạng thái thất bại.');
       }
-    } catch (err: any) {
+    } catch {
       toast.error('Có lỗi xảy ra khi cập nhật trạng thái.');
     }
   };
@@ -205,7 +205,7 @@ const Dashboard: React.FC = () => {
         toast.success(task.important ? 'Đã bỏ đánh dấu quan trọng.' : 'Đã đánh dấu quan trọng!');
         fetchTasks();
       }
-    } catch (err) {
+    } catch {
       toast.error('Có lỗi xảy ra khi cập nhật độ quan trọng.');
     }
   };

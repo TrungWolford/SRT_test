@@ -23,12 +23,9 @@ global.IntersectionObserver = class IntersectionObserver {
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(_callback: ResizeObserverCallback) {}
   
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   observe(_target: Element, _options?: ResizeObserverOptions): void {}
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   unobserve(_target: Element): void {}
   disconnect(): void {}
 } as unknown as {

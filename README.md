@@ -1,204 +1,242 @@
 # SRT Todo Application
 
-Ứng dụng quản lý công việc (Todo List) hoàn chỉnh tích hợp xác thực tài khoản tùy biến, phân quyền bảo mật JWT, và cấu hình chạy đa dạng (chạy trực tiếp Local hoặc qua Docker Compose).
+A modern, production-grade full-stack Todo Management application built with **Spring Boot (Java 21)**, **React 19 (TypeScript & Vite)**, and **PostgreSQL 17**.
+
+The application features secure stateless **JWT authentication**, per-user data isolation, comprehensive task management (CRUD, priority flag, soft delete & trash bin recovery), server-side pagination and sorting, debounced search, responsive design with dark mode, and seamless **Docker Compose** deployment.
 
 ---
 
-## 📌 Mục lục
-- [🛠️ Công nghệ Sử dụng (Tech Stack)](#️-công-nghệ-sử-dụng-tech-stack)
-- [🌟 Các Tính năng Nổi bật](#-các-tính-năng-nổi-bật)
-  - [📝 Tính năng Nghiệp vụ (Core Todo)](#-tính-năng-nghiệp-vụ-core-todo)
-  - [🔐 Bảo mật JWT (JWT Security)](#-bảo-mật-jwt-jwt-security)
-  - [📱 Responsive UI](#-responsive-ui)
-  - [📑 Phân trang & Sắp xếp dữ liệu](#-phân-trang--sắp-xếp-dữ-liệu)
-  - [🐳 Triển khai Docker Compose](#-triển-khai-docker-compose)
-  - [🧪 Unit Test](#-unit-test)
-  - [⚡ Tối ưu Hiệu năng (Performance)](#-tối-ưu-hiệu-năng-performance)
-- [📂 Cấu trúc Thư mục Chính](#-cấu-trúc-thư-mục-chính)
-- [🚀 Hướng dẫn Chạy Dự án](#-hướng-dẫn-chạy-dự-án)
-  - [Cách 1: Chạy thông qua Docker Compose (Khuyên dùng)](#cách-1-chạy-thông-qua-docker-compose-khuyên-dùng)
-  - [Cách 2: Chạy trực tiếp trên máy cục bộ (Local Run)](#cách-2-chạy-trực-tiếp-trên-máy-cục-bộ-local-run)
-- [🧪 Kiểm thử (Testing)](#-kiểm-thử-testing)
+## 📌 Table of Contents
+
+- [Tech Stack](#-tech-stack)
+- [Key Features](#-key-features)
+- [Quick Start Test Credentials](#-quick-start-test-credentials)
+- [Running the Application](#-running-the-application)
+  - [Option 1: Run with Docker Compose (Recommended)](#option-1-run-with-docker-compose-recommended)
+  - [Option 2: Run Locally on Host Machine](#option-2-run-locally-on-host-machine)
+- [API Reference](#-api-reference)
+- [Testing & Quality Assurance](#-testing--quality-assurance)
+- [Project Structure](#-project-structure)
 
 ---
 
-## 🛠️ Công nghệ Sử dụng (Tech Stack)
-
-Hệ thống được phát triển theo mô hình **Client-Server** sử dụng các công nghệ hiện đại được định nghĩa trong `client/package.json` và `server/pom.xml`:
+## 🛠️ Tech Stack
 
 ### 1. Frontend (`/client`)
-Ứng dụng trang đơn (SPA) được phát triển bằng **React 19**, **Vite** và **TypeScript**:
-- **State Management**: Quản lý trạng thái đăng nhập toàn cục qua **Redux Toolkit** (`authSlice`).
-- **API Client**: Gửi yêu cầu qua **Axios** với bộ lọc phản hồi (Response Interceptor) tự động chuẩn hóa cấu hình thành công (`success: boolean` -> `status: 'success'`).
-- **UI/UX Components**: Xây dựng dựa trên **Radix UI Primitives**, kết hợp **Lucide React** (icons) và thông báo đẩy **Sonner Toast**.
-- **CSS Framework**: **Tailwind CSS (v3)** cho giao diện nhanh, linh hoạt và tối ưu hóa CSS bundle.
-- **Routing**: Quản lý điều hướng bảo mật (Private Routes) bằng **React Router DOM v7**.
-- **Testing**: Cấu hình chạy test với **Jest** và **React Testing Library**.
+- **Core**: React 19, TypeScript, Vite
+- **State Management**: Redux Toolkit (`authSlice`) for global authentication state and token management
+- **Styling**: Tailwind CSS (v3) with full Dark/Light theme toggle support
+- **HTTP Client**: Axios with global response interceptors for standardized API handling and token attachment
+- **Icons & Notifications**: Lucide React icons, Sonner toast notifications
+- **Routing**: React Router DOM (v7) with protected route guards
 
 ### 2. Backend (`/server`)
-Được xây dựng bằng **Java 21** và **Spring Boot**, tuân thủ mô hình kiến trúc phân lớp (Layered Architecture):
-- **Controller**: Tiếp nhận và điều phối các yêu cầu HTTP RESTful APIs từ phía client.
-- **Service**: Xử lý toàn bộ logic nghiệp vụ (quản lý công việc, cơ chế mã hóa mật khẩu, phân tích/xử lý ngày hạn chót ISO-8601).
-- **Repository**: Sử dụng **Spring Data JPA / Hibernate** tương tác với cơ sở dữ liệu PostgreSQL.
-- **Security & Auth**: Bảo mật bằng **Spring Security + JWT (JSON Web Tokens)**. Hỗ trợ xác thực kép:
-  - Đăng nhập thủ công qua định danh tùy chọn (`accountName`).
-  - Xác thực qua JWT sử dụng mã định danh hệ thống UUID (`userName`) làm chủ thể (Subject).
-- **Validation**: Xác thực đầu vào với **Spring Boot Starter Validation**.
-- **Testing**: Viết unit test nghiệp vụ bằng **JUnit 5** và **Mockito**.
+- **Core**: Java 21, Spring Boot 3
+- **Architecture**: Layered Architecture (`Controller` -> `Service` -> `Repository`)
+- **Security**: Spring Security + JWT (JSON Web Tokens), `BCryptPasswordEncoder` for salted password hashing
+- **Data & Persistence**: Spring Data JPA / Hibernate, PostgreSQL 17
+- **Validation**: Jakarta Bean Validation (`@Valid`, custom regex patterns)
+- **Unit Testing**: JUnit 5, Mockito
 
 ### 3. Database & DevOps
-- **Database**: Sử dụng **PostgreSQL 17** là hệ quản trị cơ sở dữ liệu quan hệ chính.
-- **Containerization**: 
-  - **Multi-stage Build**: Giảm kích thước Docker Image của backend bằng cách tách giai đoạn build (Maven JDK 21) và chạy (JRE 21).
-  - **Docker Compose**: Đồng bộ khởi chạy PostgreSQL và Backend, thiết lập cơ chế kiểm tra sức khỏe (`pg_isready`) đảm bảo dữ liệu sẵn sàng trước khi nạp ứng dụng.
+- **Database**: PostgreSQL 17
+- **Containerization**: Multi-stage Dockerfile (Maven build + JRE 21 runtime)
+- **Orchestration**: Docker Compose with health checks and persistent volume storage
 
 ---
 
-## 🌟 Các Tính năng Nổi bật
+## 🌟 Key Features
 
-Dự án áp dụng các tiêu chuẩn và tính năng nâng cao sau:
+### 📝 Core Task Management
+- **Full CRUD Operations**: Create tasks with title, description, due date (ISO-8601), and priority.
+- **Priority Marking**: Toggle the **Important** status (starred) for urgent tasks.
+- **Completion Toggle**: Mark tasks as completed or revert back to active with a single click.
+- **Soft Delete & Trash Bin**: Tasks are moved to trash to prevent accidental data loss. Users can restore tasks or permanently delete them.
 
-### 📝 Tính năng Nghiệp vụ (Core Todo)
-- **Hiển thị danh sách công việc**: Danh sách nhiệm vụ được trình bày trực quan và ngăn nắp, thể hiện đầy đủ các thông tin cần thiết: Tiêu đề, mô tả, ngày đến hạn (Due Date) và mức độ ưu tiên.
-- **Quản lý nhiệm vụ toàn diện (CRUD Task)**: 
-  - **Create**: Thêm mới nhiệm vụ nhanh chóng với các tùy chọn ngày đến hạn và gắn nhãn quan trọng.
-  - **Read/Update**: Xem chi tiết và cập nhật nội dung công việc mọi lúc.
-  - **Delete**: Cơ chế xóa mềm đưa nhiệm vụ vào thùng rác (giúp tránh việc vô tình xóa mất dữ liệu), cho phép khôi phục lại (Restore) hoặc xóa vĩnh viễn (Hard Delete).
-- **Đánh dấu trạng thái Hoàn thành**: Dễ dàng đánh dấu nhiệm vụ đã hoàn thành hoặc khôi phục về trạng thái chưa hoàn thành chỉ với một click thông qua Checkbox tiện lợi.
-- **Tìm kiếm & Bộ lọc linh hoạt**: 
-  - Cho phép người dùng tìm kiếm tức thời các công việc dựa trên **Tiêu đề (Title)**.
-  - Hệ thống bộ lọc (Filter tabs) đa dạng hỗ trợ phân loại nhanh công việc theo các trạng thái: Đang làm (Active), Quan trọng (Important), Đã hoàn thành (Completed), và Đã xóa/Thùng rác (Deleted).
+### 🔍 Search, Filter & Pagination
+- **Search with Debouncing**: Real-time title search debounced at 500ms to eliminate redundant API calls.
+- **Multi-Tab Filtering**: Filter tasks by **Active**, **Important**, **Completed**, and **Deleted (Trash)**.
+- **Server-Side Pagination**: Efficient pagination via Spring Data `Pageable` (`page`, `size`) with total elements and page count metadata.
+- **Automatic Sorting**: Tasks are sorted chronologically by creation date in descending order (`createdDate DESC`).
 
-### 🔐 Bảo mật JWT (JWT Security)
-- **Cơ chế xác thực phi trạng thái (Stateless Authentication)**: 
-  - Toàn bộ các API yêu cầu dữ liệu Todo đều được cấu hình kiểm soát truy cập thông qua bộ lọc `SecurityConfig.java`.
-  - Sử dụng Token JWT được ký mã hóa và xác thực tự động ở mỗi request thông qua `JwtUtils.java` và `JwtAuthenticationFilter.java`.
-- **Hệ thống Đăng ký / Đăng nhập an toàn**: Mật khẩu người dùng được mã hóa bằng thuật toán `BCryptPasswordEncoder` trước khi lưu vào database.
-- **Phân quyền truy cập tài nguyên**: Đảm bảo người dùng đã đăng nhập chỉ có thể truy vấn, sửa đổi hoặc xóa các công việc do chính tài khoản của họ tạo ra, ngăn chặn việc rò rỉ hoặc can thiệp chéo dữ liệu giữa các tài khoản.
-
-### 📱 Responsive UI
-- Giao diện người dùng được thiết kế responsive hoàn chỉnh, tối ưu trải nghiệm trên mọi kích thước màn hình từ điện thoại di động, máy tính bảng đến máy tính để bàn lớn.
-- Sử dụng các layout linh hoạt (Grid, Flexbox) và breakpoints của Tailwind CSS để tự động thích ứng.
-- Sidebar điều hướng có thể thu gọn linh hoạt trên màn hình desktop và ẩn/hiện dạng Drawer trên điện thoại di động để tiết kiệm diện tích.
-
-### 📑 Phân trang & Sắp xếp dữ liệu
-- **Phân trang (Pagination)**: Hỗ trợ phân trang phía Backend sử dụng API `Pageable` của Spring Data JPA. Frontend nhận dữ liệu và hiển thị thanh chuyển trang trực quan (Trang trước/sau, tổng số trang) tại `Dashboard.tsx`, giúp tăng tốc độ tải và giảm băng thông truyền tải dữ liệu.
-- **Sắp xếp (Sorting)**: Backend tự động sắp xếp danh sách công việc theo thời gian tạo mới nhất (`createdDate` giảm dần - DESC) trước khi trả về qua API nhờ cấu hình `Sort.by(Sort.Direction.DESC, "createdDate")` trong `TaskServiceImpl.java`.
-
-### 🐳 Triển khai Docker Compose
-- Hệ thống hỗ trợ khởi dựng toàn diện chỉ bằng một câu lệnh: `docker compose up -d --build` thông qua tệp cấu hình `docker-compose.yml`.
-- Tự động hóa quá trình xây dựng image cho dịch vụ Spring Boot qua `Dockerfile`.
-- Cấu hình mạng độc lập (`srt-network`) và volume bền vững (`postgres_data`) đảm bảo dữ liệu PostgreSQL không bị mất khi container dừng/khởi động lại.
-- Dữ liệu mẫu (sample data) được tự động nạp vào DB khi khởi tạo lần đầu thông qua file khởi tạo SQL `init-sample-data.sql`.
-
-### 🧪 Unit Test
-- **Backend**: Đã triển khai bộ kiểm thử đơn vị (Unit Tests) hoàn chỉnh cho tầng dịch vụ nghiệp vụ chính `AuthServiceImplTest.java` và `TaskServiceImplTest.java` sử dụng framework **JUnit 5** kết hợp với thư viện giả lập **Mockito**.
-- **Frontend**: Môi trường kiểm thử được thiết lập đầy đủ với **Jest**, **React Testing Library** và **ts-jest**, cấu hình sẵn mock cho các Web API (như IntersectionObserver) trong `setupTests.ts` giúp sẵn sàng phát triển thêm các kịch bản test giao diện.
-
-### ⚡ Tối ưu Hiệu năng (Performance)
-- **Search Debouncing**: Tích hợp cơ chế trì hoãn (Debounce 500ms) ở ô tìm kiếm tại `Dashboard.tsx`. Khi người dùng gõ từ khóa, hệ thống đợi ngắt phím đủ 500ms mới kích hoạt API gọi lên backend, tránh spam các request liên tục không cần thiết.
-- **Database Lazy Loading**: Thực thể `Task.java` được cấu hình liên kết với `User` dạng `@ManyToOne(fetch = FetchType.LAZY)`. Điều này giúp tránh hiện tượng N+1 query và chỉ tải thông tin người dùng khi thực sự cần thiết, cải thiện đáng kể tốc độ truy cập cơ sở dữ liệu.
-- **Vite Build**: Quy trình build tối ưu hóa mã nguồn tĩnh phía Frontend, giảm thiểu dung lượng file đóng gói để người dùng tải trang nhanh nhất.
+### 🔐 Security & Access Control
+- **Stateless Authentication**: Protected API endpoints guarded by `JwtAuthenticationFilter`.
+- **Per-User Data Isolation**: Queries and mutations strictly enforce that users can only access their own tasks (`createdBy = currentUser`).
+- **Robust Input Validation**: Strict validation rules for account names, emails, and passwords on registration.
 
 ---
 
-## 📂 Cấu trúc Thư mục Chính
+## 🧪 Quick Start Test Credentials
+
+When starting with a fresh database, you can immediately register a test account on the **Register** page (`/register`), or use the following recommended test profile:
+
+| Field | Value | Validation Rules |
+| :--- | :--- | :--- |
+| **Account Name** | `testuser` | 3–50 chars, letters, numbers, `_`, `.` |
+| **Full Name** | `ShopBack Reviewer` | 2–100 chars |
+| **Email** | `testuser@example.com` | Valid email format |
+| **Password** | `Password123!` | Min 8 chars, at least 1 uppercase, 1 lowercase, 1 number, 1 special symbol (`@$!%*?&`) |
+
+> **Note**: To test immediately, click **"Chưa có tài khoản? Đăng ký ngay"** on the login page and use the credentials above. Once registered, log in to access the task dashboard.
+
+---
+
+## 🚀 Running the Application
+
+### Prerequisites
+- **Docker** and **Docker Desktop** (for Docker deployment)
+- **Java 21+** and **Maven** (for local backend development)
+- **Node.js (v18+)** and **pnpm** (or **npm**)
+- **PostgreSQL 17** (for local database setup)
+
+---
+
+### Option 1: Run with Docker Compose (Recommended)
+
+This method starts the **PostgreSQL database** and the **Spring Boot backend** inside containers with a single command.
+
+#### Step 1: Start Backend and Database
+From the project root directory (where `docker-compose.yml` is located):
 
 ```bash
-SRT_test/
-├── client/                     # Mã nguồn Frontend (React Vite TS)
-│   ├── src/
-│   │   ├── api/                # Axios API calls (authApi.ts, taskApi.ts)
-│   │   ├── components/         # Các component dùng chung
-│   │   ├── config/             # Cấu hình tĩnh (routes, endpoints)
-│   │   ├── pages/              # Trang giao diện (Auth, Todo Dashboard)
-│   │   └── store/              # Redux slices quản lý state
-│   ├── package.json
-│   └── tailwind.config.js
-├── server/                     # Mã nguồn Backend (Spring Boot)
-│   ├── src/main/java/SRT/test/
-│   │   ├── controller/         # REST Controllers
-│   │   ├── dto/                # Request & Response DTOs
-│   │   ├── entity/             # JPA Entities (User, Task)
-│   │   ├── repo/               # Database Repositories
-│   │   ├── security/           # JWT, Cors, UserDetailsService
-│   │   └── service/            # Lớp dịch vụ nghiệp vụ (ITaskService, IAuthService)
-│   ├── src/test/               # Bộ mã nguồn unit tests (Auth & Task services)
-│   ├── Dockerfile              # Hướng dẫn build ảnh Docker Backend
-│   └── pom.xml                 # Cấu hình Maven dependencies
-└── docker-compose.yml          # File Docker Compose khởi chạy toàn bộ hệ thống
+cd Todo-app
+docker compose up -d --build
 ```
 
----
+- **PostgreSQL**: Running on port `5434` (mapped from container `5432`).
+- **Backend API**: Running on `http://localhost:8080`.
 
-## 🚀 Hướng dẫn Chạy Dự án
+#### Step 2: Start Frontend
+Open a new terminal, navigate to the `client/` directory, install dependencies and launch the dev server:
 
-Bạn có thể chạy dự án theo một trong hai cách dưới đây:
-
-### Cách 1: Chạy thông qua Docker Compose (Khuyên dùng)
-
-Cách này sẽ tự động khởi dựng cơ sở dữ liệu PostgreSQL và máy chủ Backend mà không cần cài đặt môi trường Java/Postgres trên máy cá nhân của bạn.
-
-#### Yêu cầu:
-* Máy tính đã cài đặt **Docker** và **Docker Desktop**.
-
-#### Các bước khởi chạy:
-
-1. Mở terminal tại thư mục gốc của dự án (nơi chứa file `docker-compose.yml`).
-2. Khởi chạy Docker Compose bằng lệnh:
-   ```bash
-   docker compose up -d --build
-   ```
-3. Docker sẽ tiến hành tải ảnh PostgreSQL, xây dựng mã nguồn Java bên trong container và chạy dịch vụ ngầm. 
-   * **Database**: Chạy trên cổng `5434`.
-   * **Backend REST API**: Chạy trên cổng `8080`.
-4. **Khởi chạy Frontend**:
-   * Đảm bảo máy tính đã cài đặt **Node.js** (v18 trở lên).
-   * Mở terminal mới, truy cập vào thư mục `client/`, cài đặt các thư viện và khởi chạy dự án:
-     ```bash
-     npm install
-     npm run dev
-     ```
-     *(Hoặc dùng `pnpm install` và `pnpm dev` nếu bạn sử dụng pnpm).*
-     Ứng dụng FE sẽ được khởi chạy tại địa chỉ `http://localhost:5174/`.
-
----
-
-### Cách 2: Chạy trực tiếp trên máy cục bộ (Local Run)
-
-#### Yêu cầu môi trường:
-* **Java 21** hoặc cao hơn.
-* **Node.js** (v18 trở lên) & **npm** hoặc **pnpm**.
-* **PostgreSQL** đang chạy trên cổng `5434` (hoặc cấu hình lại trong file `application.properties`).
-
-#### Các bước khởi chạy:
-
-1. **Khởi động Database**:
-   Đảm bảo PostgreSQL đang chạy và đã tạo cơ sở dữ liệu tên là `srt`. Tài khoản/mật khẩu mặc định: `admin` / `123`.
-
-2. **Chạy Backend**:
-   Mở terminal tại thư mục `server/` và thực thi:
-   ```bash
-   mvn spring-boot:run
-   ```
-   Máy chủ Backend sẽ lắng nghe tại cổng `http://localhost:8080`.
-
-3. **Chạy Frontend**:
-   Mở một terminal mới tại thư mục `client/` và thực thi:
-   ```bash
-   npm install
-   npm run dev
-   ```
-   Ứng dụng FE sẽ được khởi chạy tại địa chỉ `http://localhost:5174/`.
-
----
-
-## 🧪 Kiểm thử (Testing)
-
-Dự án đã cấu hình đầy đủ Unit Test cho phần xử lý logic nghiệp vụ chính (Authentication và Task Management).
-
-Để chạy toàn bộ bộ thử nghiệm của Backend, truy cập thư mục `server/` và gõ lệnh:
 ```bash
+cd client
+pnpm install
+pnpm dev
+```
+*(Or use `npm install` and `npm run dev`)*
+
+The frontend client will be available at:
+👉 **`http://localhost:5173`** (or `http://localhost:5174`)
+
+---
+
+### Option 2: Run Locally on Host Machine
+
+#### Step 1: Start PostgreSQL
+Ensure PostgreSQL is running locally on port **`5434`** with a database named `srt`:
+- **Host**: `localhost`
+- **Port**: `5434`
+- **Database**: `srt`
+- **Username**: `admin`
+- **Password**: `123`
+
+*(Alternatively, update database credentials in `server/src/main/resources/application.properties` to match your local setup).*
+
+#### Step 2: Start Spring Boot Backend
+Navigate to the `server/` directory and run:
+
+```bash
+cd server
+mvn spring-boot:run
+```
+
+The server will start listening at:
+👉 **`http://localhost:8080`**
+
+#### Step 3: Start Frontend
+Navigate to the `client/` directory and run:
+
+```bash
+cd client
+pnpm install
+pnpm dev
+```
+
+The frontend client will be available at:
+👉 **`http://localhost:5173`**
+
+---
+
+## 📡 API Reference
+
+### Authentication Endpoints (`/api/auth`)
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register a new user account | No |
+| `POST` | `/api/auth/login` | Authenticate with credentials and receive JWT | No |
+| `POST` | `/api/auth/refresh` | Refresh access token using refresh token | No |
+| `POST` | `/api/auth/logout` | Invalidate user session | No |
+
+### Task Endpoints (`/api/tasks`)
+| Method | Endpoint | Query / Body Params | Description | Auth Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/api/tasks` | `search`, `status`, `page`, `size` | Retrieve paginated list of tasks | Yes (Bearer Token) |
+| `POST` | `/api/tasks` | `{ title, description, dueDate, important, completed }` | Create a new task | Yes (Bearer Token) |
+| `PUT` | `/api/tasks/{id}` | `{ title, description, dueDate, important, completed, deleted }` | Update an existing task | Yes (Bearer Token) |
+| `DELETE` | `/api/tasks/{id}` | - | Soft delete task (move to trash) | Yes (Bearer Token) |
+| `PATCH` | `/api/tasks/{id}/completion` | `{ completed: boolean }` | Toggle task completion status | Yes (Bearer Token) |
+| `PATCH` | `/api/tasks/{id}/restore` | - | Restore a deleted task from trash | Yes (Bearer Token) |
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+### Backend Unit Tests
+Unit tests cover core service logic (`AuthServiceImplTest`, `TaskServiceImplTest`) with **JUnit 5** and **Mockito**:
+
+```bash
+cd server
 mvn test
 ```
-*(Hệ thống sẽ tự động thiết lập múi giờ kiểm thử thành UTC để tương thích tốt nhất với hệ quản trị CSDL cục bộ).*
+
+### Frontend Code Quality & Build Verification
+The frontend code adheres strictly to ESLint rules and TypeScript types with **0 errors and 0 warnings**:
+
+```bash
+cd client
+# Run ESLint check
+pnpm lint
+
+# Run Production Build
+pnpm build
+```
+
+---
+
+## 📂 Project Structure
+
+```bash
+Todo-app/
+├── docker-compose.yml          # Container configuration for Postgres & Spring Boot
+├── init-sample-data.sql        # Database initialization script
+├── README.md                   # Project documentation
+├── client/                     # Frontend Application (React 19, Vite, TypeScript)
+│   ├── src/
+│   │   ├── api/                # API client services (authApi.ts, taskApi.ts)
+│   │   ├── config/             # Constants and route configurations
+│   │   ├── libs/               # Axios instance with interceptors, utility functions
+│   │   ├── pages/              # Views (Login.tsx, Register.tsx, Dashboard.tsx)
+│   │   ├── routes/             # AppRoutes with ProtectedRoute wrapper
+│   │   ├── store/              # Redux Toolkit store and slices (authSlice.ts)
+│   │   ├── types/              # TypeScript definitions and interfaces
+│   │   ├── App.tsx             # Root component
+│   │   └── main.tsx            # Application entry point
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.ts
+└── server/                     # Backend Application (Spring Boot, Java 21)
+    ├── src/main/java/SRT/test/
+    │   ├── common/             # Standard API & pagination response wrappers
+    │   ├── config/             # SecurityConfig, CorsConfig
+    │   ├── controller/         # REST Controllers (AuthController, TaskController)
+    │   ├── dto/                # Request & Response DTOs with validation rules
+    │   ├── entity/             # JPA Entities (User, Task)
+    │   ├── exception/          # Global exception handling & error codes
+    │   ├── repo/               # Spring Data JPA repositories (IUserRepository, ITaskRepository)
+    │   ├── security/           # JWT utility, UserDetailsService, JwtAuthFilter
+    │   └── service/            # Business logic interfaces & implementations
+    ├── src/test/               # JUnit 5 & Mockito test suites
+    ├── Dockerfile              # Multi-stage Docker build configuration
+    └── pom.xml                 # Maven dependencies & plugins
+```
